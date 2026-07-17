@@ -1,13 +1,18 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
- app.use(express.json()) 
+app.use(express.json()) 
+
+
+ morgan.token('body', (req) => { return JSON.stringify(req.body) })
+ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 let persons = [
-  { id: 1, name: 'John Doe', age: 30 , number: 1234567890},
-  { id: 2, name: 'Jane Smith', age: 25 , number: 987654321},
-  { id: 3, name: 'Alice Johnson', age: 28 , number: 1122334455},
-  { id: 4, name: 'Bob Brown', age: 35 , number: 5555555555 }
+  { id: 1, name: 'John Doe', number: 1234567890},
+  { id: 2, name: 'Jane Smith',number: 987654321},
+  { id: 3, name: 'Alice Johnson',  number: 1122334455},
+  { id: 4, name: 'Bob Brown', number: 5555555555 }
 ]
 
 app.get('/api/persons', (req, res) => {

@@ -1,0 +1,25 @@
+### Get all persons
+GET http://localhost:3001/api/persons
+
+### Get single person
+GET http://localhost:3001/api/persons/1
+
+### Delete a person
+DELETE http://localhost:3001/api/persons/1
+
+### Add a person
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Test Person",
+  "number": "123-456789"
+}
+
+### Add person with missing name (should return 400)
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "number": "123-456789"
+}

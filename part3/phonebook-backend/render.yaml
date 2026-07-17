@@ -1,0 +1,10 @@
+services:
+  -type: web
+   name: phonebook-backend
+   runtime: node
+   buildCommand: npm install
+   startCommand: node index.js
+   envVars:
+     - name: PORT
+       value: "3001"
+     

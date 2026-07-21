@@ -81,3 +81,71 @@ describe('favorite blog', () => {
   })
 })
 
+describe('most blogs', () => {
+  const listWithManyBlogs = [
+    { title: 'React patterns', author: 'Michael Chan', url: 'https://reactpatterns.com/', likes: 7 },
+    { title: 'Go To Statement Considered Harmful', author: 'Edsger W. Dijkstra', url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf', likes: 5 },
+    { title: 'Canonical string reduction', author: 'Edsger W. Dijkstra', url: 'https://cs.helsinki.fi/u/luodonro/pub/1982/p135-dijkstra.pdf', likes: 12 },
+    { title: 'First class tests', author: 'Robert C. Martin', url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html', likes: 10 },
+    { title: 'TDD harms architecture', author: 'Robert C. Martin', url: 'http://blog.cleancoder.com/uncle-bob/2016/11/16/TDD_Harms_Architecture.html', likes: 0 },
+    { title: 'Type wars', author: 'Robert C. Martin', url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html', likes: 2 }
+  ]
+
+  test('when list has many blogs returns author with most blogs', () => {
+    const result = listHelper.mostBlogs(listWithManyBlogs)
+    expect(result).toEqual({
+      author: 'Robert C. Martin',
+      blogs: 3
+    })
+  })
+
+  test('when list is empty returns null', () => {
+    const result = listHelper.mostBlogs([])
+    expect(result).toBeNull()
+  })
+
+  test('when list has one blog returns that author', () => {
+    const result = listHelper.mostBlogs([
+      { title: 'React patterns', author: 'Michael Chan', url: 'https://reactpatterns.com/', likes: 7 }
+    ])
+    expect(result).toEqual({
+      author: 'Michael Chan',
+      blogs: 1
+    })
+  })
+})
+
+describe('most likes', () => {
+  const listWithManyBlogs = [
+    { title: 'React patterns', author: 'Michael Chan', url: 'https://reactpatterns.com/', likes: 7 },
+    { title: 'Go To Statement Considered Harmful', author: 'Edsger W. Dijkstra', url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf', likes: 5 },
+    { title: 'Canonical string reduction', author: 'Edsger W. Dijkstra', url: 'https://cs.helsinki.fi/u/luodonro/pub/1982/p135-dijkstra.pdf', likes: 12 },
+    { title: 'First class tests', author: 'Robert C. Martin', url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html', likes: 10 },
+    { title: 'TDD harms architecture', author: 'Robert C. Martin', url: 'http://blog.cleancoder.com/uncle-bob/2016/11/16/TDD_Harms_Architecture.html', likes: 0 },
+    { title: 'Type wars', author: 'Robert C. Martin', url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html', likes: 2 }
+  ]
+
+  test('when list has many blogs returns author with most likes', () => {
+    const result = listHelper.mostLikes(listWithManyBlogs)
+    expect(result).toEqual({
+      author: 'Edsger W. Dijkstra',
+      likes: 17
+    })
+  })
+
+  test('when list is empty returns null', () => {
+    const result = listHelper.mostLikes([])
+    expect(result).toBeNull()
+  })
+
+  test('when list has one blog returns that author', () => {
+    const result = listHelper.mostLikes([
+      { title: 'React patterns', author: 'Michael Chan', url: 'https://reactpatterns.com/', likes: 7 }
+    ])
+    expect(result).toEqual({
+      author: 'Michael Chan',
+      likes: 7
+    })
+  })
+})
+

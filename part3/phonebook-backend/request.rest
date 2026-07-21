@@ -1,7 +1,7 @@
 ### Get all persons
 GET http://localhost:3001/api/persons
 
-### Get single person
+### Get single person by id
 GET http://localhost:3001/api/persons/1
 
 ### Delete a person
@@ -12,16 +12,32 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-  "name": "Test Person",
-  "number": "123-456789"
+  "name": "Arto Hellas",
+  "number": "040-123456"
 }
 
-### Add person with missing name (should return 400)
+### Add another person
 POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-  "id": 123456,
-  "name": "Test Person",
+  "name": "Ada Lovelace",
+  "number": "39-44-5323523"
+}
+
+### Add person with missing name - should return 400
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
   "number": "123-456789"
+}
+
+### Update a person's number (replace ID with a real one from your DB)
+PUT http://localhost:3001/api/persons/6a5f453b4a38391bacb7cccc
+Content-Type: application/json
+
+{
+  "name": "Arto Hellas",
+  "number": "999-999999"
 }

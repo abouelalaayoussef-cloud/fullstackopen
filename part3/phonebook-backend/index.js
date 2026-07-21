@@ -33,7 +33,7 @@ app.get('/info', (req, res) => {
 })
 
 // GET single person
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then(person => {
       if (person) {
@@ -42,20 +42,16 @@ app.get('/api/persons/:id', (req, res) => {
         res.status(404).end()
       }
     })
-    .catch(error => {
-      res.status(400).json({ error: 'malformatted id' })
-    })
+    .catch(error => next(error))
 })
 
 // DELETE person
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
     .then(() => {
       res.status(204).end()
     })
-    .catch(error => {
-      res.status(400).json({ error: 'malformatted id' })
-    })
+    .catch(error => { next(error)})
 })
 
 // POST new person
@@ -77,6 +73,34 @@ app.post('/api/persons', (req, res) => {
     res.json(savedPerson)
   })
 })
+
+ // PUT update person
+app.put('/api/persons/:id', (req, res, next) => {
+  const {name, number} = req.body
+
+  Person.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { returnDocument: 'after', runValidators: true, context: 'query' }
+  )
+    .then(updatedPerson => {
+      res.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
+  next(error)
+}
+
+app.use(errorHandler)
+
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

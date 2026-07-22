@@ -87,6 +87,42 @@ test('blog without url returns 400', async () => {
 })
 })
 
+describe('deletion of a blog', () => {
+  test('succeeds with status 204 if id is valid', async () => {
+    const blogsAtStart = await api.get('/api/blogs')
+    const blogToDelete = blogsAtStart.body[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await api.get('/api/blogs')
+    expect(blogsAtEnd.body).toHaveLength(initialBlogs.length - 1)
+
+    const titles = blogsAtEnd.body.map(b => b.title)
+    expect(titles).not.toContain(blogToDelete.title)
+  })
+})
+
+describe('updating a blog', () => {
+  test('succeeds with valid data', async () => {
+    const blogsAtStart = await api.get('/api/blogs')
+    const blogToUpdate = blogsAtStart.body[0]
+
+    const updatedBlog = {
+      ...blogToUpdate,
+      likes: blogToUpdate.likes + 1
+    }
+
+    const response = await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog)
+      .expect(200)
+
+    expect(response.body.likes).toBe(blogToUpdate.likes + 1)
+  })
+})
+
 describe('addition of a new blog', () => {
   test('a valid blog can be added', async () => {
     const newBlog = {

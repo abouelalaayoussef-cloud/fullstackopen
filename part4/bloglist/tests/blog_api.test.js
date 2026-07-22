@@ -2,8 +2,10 @@ const { test, describe, after, beforeEach } = require('@jest/globals')
 const { expect } = require('@jest/globals')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const bcrypt = require('bcrypt')
 const app = require('../app')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
 
@@ -22,9 +24,27 @@ const initialBlogs = [
   }
 ]
 
+let token = null
+
 beforeEach(async () => {
   await Blog.deleteMany({})
-  await Blog.insertMany(initialBlogs)
+  await User.deleteMany({})
+
+  const passwordHash = await bcrypt.hash('sekret' , 10)
+  const user = new User({
+    username: 'testUser',
+    name: 'Test User',
+    passwordHash
+  })
+  await user.save()
+
+  const loginResponse = await api
+    .post('/api/login')
+    .send({ username: 'testuser', password: 'sekret'})
+
+    token = loginResponse.body.token
+
+    await Blog.insertMany(initialBlogs)
 })
 
 describe('when there are initially some blogs saved', () => {

@@ -1,13 +1,7 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-
-const getTokenFrom = request => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
-  }
-  return null
-}
+const jwt = require('jsonwebtoken')
+const config = require('../utils/config')
 
 
 blogsRouter.get('/', async (request, response) => {
@@ -46,18 +40,35 @@ blogsRouter.post('/', async (request, response, next) => {
     return response.status(400).end()
   }
 
-  const blog = new Blog ({
+  try {
+    if(!request.token) {
+      return response.status(401).json({error: 'token invalid'})
+    }
+
+    const decodedToken = jwt.verify(request.token , config.SECRET)
+
+    if(!decodedToken.id) {
+      return response.status(401).json({error: 'token invalid'})
+    }
+    const user = request.user
+
+    const blog = new Blog ({
     title,
     author,
     url,
-    likes: likes || 0
+    likes: likes || 0,
+    user: user._id
   })
 
-  blog.save()
-    .then(savedBlog => {
-      response.status(201).json(savedBlog)
-    })
-    .catch(error => next(error))
+  const savedBlog = await blog.save()
+  user.blogs = user.blogs.concat(savedBlog._id)
+  await user.save()
+
+  response.status(201).json(savedBlog)
+  } catch (error) {
+    next(error)
+  }
+
 })
 
 module.exports = blogsRouter

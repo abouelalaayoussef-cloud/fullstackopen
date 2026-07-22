@@ -1,4 +1,4 @@
-const { test, describe, after, beforeEach } = require('@jest/globals')
+const { test, describe, afterAll, beforeEach } = require('@jest/globals')
 const { expect } = require('@jest/globals')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
@@ -30,9 +30,9 @@ beforeEach(async () => {
   await Blog.deleteMany({})
   await User.deleteMany({})
 
-  const passwordHash = await bcrypt.hash('sekret' , 10)
+  const passwordHash = await bcrypt.hash('sekret', 10)
   const user = new User({
-    username: 'testUser',
+    username: 'testuser',  // ← lowercase, consistent with login
     name: 'Test User',
     passwordHash
   })
@@ -40,11 +40,11 @@ beforeEach(async () => {
 
   const loginResponse = await api
     .post('/api/login')
-    .send({ username: 'testuser', password: 'sekret'})
+    .send({ username: 'testuser', password: 'sekret' })
 
-    token = loginResponse.body.token
+  token = loginResponse.body.token
 
-    await Blog.insertMany(initialBlogs)
+  await Blog.insertMany(initialBlogs)
 })
 
 describe('when there are initially some blogs saved', () => {
@@ -59,52 +59,55 @@ describe('when there are initially some blogs saved', () => {
     const response = await api.get('/api/blogs')
     expect(response.body).toHaveLength(initialBlogs.length)
   })
-  
+
   test('the unique identifier property of blogs is named id', async () => {
-  const response = await api.get('/api/blogs')
-  expect(response.body[0].id).toBeDefined()
-})
+    const response = await api.get('/api/blogs')
+    expect(response.body[0].id).toBeDefined()
+  })
 
-test('blog without likes defaults to 0', async () => {
-  const newBlog = {
-    title: 'Blog without likes',
-    author: 'Test Author',
-    url: 'https://testurl.com/'
-  }
+  test('blog without likes defaults to 0', async () => {
+    const newBlog = {
+      title: 'Blog without likes',
+      author: 'Test Author',
+      url: 'https://testurl.com/'
+    }
 
-  const response = await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(201)
+    const response = await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)  // ← added
+      .send(newBlog)
+      .expect(201)
 
-  expect(response.body.likes).toBe(0)
-})
+    expect(response.body.likes).toBe(0)
+  })
 
-test('blog without title returns 400', async () => {
-  const newBlog = {
-    author: 'Test Author',
-    url: 'https://testurl.com/',
-    likes: 5
-  }
+  test('blog without title returns 400', async () => {
+    const newBlog = {
+      author: 'Test Author',
+      url: 'https://testurl.com/',
+      likes: 5
+    }
 
-  await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(400)
-})
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)  // ← added
+      .send(newBlog)
+      .expect(400)
+  })
 
-test('blog without url returns 400', async () => {
-  const newBlog = {
-    title: 'Test Title',
-    author: 'Test Author',
-    likes: 5
-  }
+  test('blog without url returns 400', async () => {
+    const newBlog = {
+      title: 'Test Title',
+      author: 'Test Author',
+      likes: 5
+    }
 
-  await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(400)
-})
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)  // ← added
+      .send(newBlog)
+      .expect(400)
+  })
 })
 
 describe('deletion of a blog', () => {
@@ -154,6 +157,7 @@ describe('addition of a new blog', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)  // ← added
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -163,6 +167,20 @@ describe('addition of a new blog', () => {
 
     expect(response.body).toHaveLength(initialBlogs.length + 1)
     expect(titles).toContain('async/await simplifies making async calls')
+  })
+
+  test('adding blog without token returns 401', async () => {
+    const newBlog = {
+      title: 'Unauthorized blog',
+      author: 'Test Author',
+      url: 'https://testurl.com/',
+      likes: 5
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
   })
 })
 

@@ -1,0 +1,78 @@
+import { useState, useEffect } from 'react'
+import blogService from './services/blogs'
+import loginService from './services/login'
+
+
+
+const App = () => {
+  const [blogs, setBlogs] = useState([])
+  const [user, setUser] = useState(null)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
+
+  useEffect(() => {
+    blogService.getAll().then(blogs => setBlogs(blogs))
+  }, [])
+
+  const handleLogin = async (event) => {
+    event.preventDefault()
+    try {
+      const user = await loginService.login({username, password})
+      setUser(user)
+      blogService.setToken(user.token)
+      setUsername('')
+      setPassword('')
+    } catch (error) {
+      setErrorMessage('Wrong username or password')
+      setTimeout(() => setErrorMessage(null), 5000)
+    }
+  }
+
+  const loginForm = () => (
+    <form onSubmit={handleLogin}>
+      <h2>Login</h2>
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <div>
+        username:
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </div>
+      <div>
+        password:
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+      <button type="submit">login</button>
+    </form>
+  )
+
+  const blogList = () => (
+    <div>
+      <h2>blogs</h2>
+      <p>{user.name} logged in</p>
+      {blogs.map(blog =>
+        <div key={blog.id}>
+          {blog.title} {blog.author}
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <div>
+      {user === null
+        ? loginForm()
+        : blogList()
+      }
+    </div>
+  )
+}
+
+export default App

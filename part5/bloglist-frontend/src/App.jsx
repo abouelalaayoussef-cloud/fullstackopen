@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import Togglable from './components/Togglable'
+import BlogForm from './components/BlogForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -9,9 +11,8 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
-  const [newTitle, setNewTitle] = useState('')
-  const [newAuthor, setNewAuthor] = useState('')
-  const [newUrl, setNewUrl] = useState('')
+
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs => setBlogs(blogs))
@@ -47,20 +48,13 @@ const App = () => {
     setUser(null)
   }
 
-  const handleCreateBlog = async (event) => {
-    event.preventDefault()
+  const handleCreateBlog = async (blogObject) => {
     try {
-      const newBlog = await blogService.create({
-        title: newTitle,
-        author: newAuthor,
-        url: newUrl
-      })
+      blogFormRef.current.toggleVisibility()
+      const newBlog = await blogService.create(blogObject)
       setBlogs(blogs.concat(newBlog))
-      setSuccessMessage(`a new blog ${newTitle} by ${newAuthor} added`)
+      setSuccessMessage(`a new blog ${blogObject.title} by ${blogObject.author} added`)
       setTimeout(() => setSuccessMessage(null), 5000)
-      setNewTitle('')
-      setNewAuthor('')
-      setNewUrl('')
     } catch (error) {
       setErrorMessage('Error creating blog')
       setTimeout(() => setErrorMessage(null), 5000)
@@ -91,57 +85,27 @@ const App = () => {
     </form>
   )
 
-  const blogForm = () => (
-    <form onSubmit={handleCreateBlog}>
-      <h2>create new</h2>
-      <div>
-        title:
-        <input
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-        />
-      </div>
-      <div>
-        author:
-        <input
-          value={newAuthor}
-          onChange={(e) => setNewAuthor(e.target.value)}
-        />
-      </div>
-      <div>
-        url:
-        <input
-          value={newUrl}
-          onChange={(e) => setNewUrl(e.target.value)}
-        />
-      </div>
-      <button type="submit">create</button>
-    </form>
-  )
-
-  const blogList = () => (
-    <div>
-      <h2>blogs</h2>
-      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <p>
-        {user.name} logged in
-        <button onClick={handleLogout}>logout</button>
-      </p>
-      {blogForm()}
-      {blogs.map(blog =>
-        <div key={blog.id}>
-          {blog.title} {blog.author}
-        </div>
-      )}
-    </div>
-  )
-
   return (
     <div>
       {user === null
         ? loginForm()
-        : blogList()
+        : <div>
+            <h2>blogs</h2>
+            {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
+            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+            <p>
+              {user.name} logged in
+              <button onClick={handleLogout}>logout</button>
+            </p>
+            <Togglable buttonLabel="new blog" ref={blogFormRef}>
+              <BlogForm createBlog={handleCreateBlog} />
+            </Togglable>
+            {blogs.map(blog =>
+              <div key={blog.id}>
+                {blog.title} {blog.author}
+              </div>
+            )}
+          </div>
       }
     </div>
   )

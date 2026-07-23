@@ -3,6 +3,7 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
+import Blog from './components/Blog'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -47,6 +48,24 @@ const App = () => {
     blogService.setToken(null)
     setUser(null)
   }
+
+  const handleLike = async (blog) => {
+  const updatedBlog = {
+    title: blog.title,
+    author: blog.author,
+    url: blog.url,
+    likes: blog.likes + 1,
+    user: blog.user?.id || blog.user
+  }
+
+  try {
+    const returnedBlog = await blogService.update(blog.id, updatedBlog)
+    setBlogs(blogs.map(b => b.id !== blog.id ? b : returnedBlog))
+  } catch (error) {
+    setErrorMessage('Error liking blog')
+    setTimeout(() => setErrorMessage(null), 5000)
+  }
+}
 
   const handleCreateBlog = async (blogObject) => {
     try {
@@ -101,10 +120,8 @@ const App = () => {
               <BlogForm createBlog={handleCreateBlog} />
             </Togglable>
             {blogs.map(blog =>
-              <div key={blog.id}>
-                {blog.title} {blog.author}
-              </div>
-            )}
+              <Blog key={blog.id} blog={blog} handleLike={handleLike} />
+)}
           </div>
       }
     </div>
